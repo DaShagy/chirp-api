@@ -11,4 +11,7 @@ dependencies {
     implementation(projects.notification)
     implementation(projects.user)
     implementation(projects.common)
+
+    implementation(libs.spring.boot.starter.data.jpa)
+    runtimeOnly(libs.postgresql)
 }
