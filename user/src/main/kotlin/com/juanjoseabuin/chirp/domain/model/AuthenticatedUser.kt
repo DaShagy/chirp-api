@@ -1,4 +1,4 @@
-package com.juanjoseabuin.user.domain.model
+package com.juanjoseabuin.chirp.domain.model
 
 data class AuthenticatedUser(
     val user: User,
