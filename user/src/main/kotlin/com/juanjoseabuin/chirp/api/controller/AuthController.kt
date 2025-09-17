@@ -1,5 +1,7 @@
 package com.juanjoseabuin.chirp.api.controller
 
+import com.juanjoseabuin.chirp.api.dto.AuthenticatedUserDto
+import com.juanjoseabuin.chirp.api.dto.LoginRequest
 import com.juanjoseabuin.chirp.api.dto.RegisterRequest
 import com.juanjoseabuin.chirp.api.dto.UserDto
 import com.juanjoseabuin.chirp.api.mapper.toDto
@@ -23,6 +25,16 @@ class AuthController(
         return authService.register(
             email = body.email,
             username = body.username,
+            password = body.password
+        ).toDto()
+    }
+
+    @PostMapping("/login")
+    fun login(
+        @RequestBody body: LoginRequest
+    ): AuthenticatedUserDto {
+        return authService.login(
+            email = body.email,
             password = body.password
         ).toDto()
     }
