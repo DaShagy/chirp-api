@@ -1,6 +1,7 @@
 package com.juanjoseabuin.chirp.service.auth
 
 import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
+import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
 import com.juanjoseabuin.chirp.domain.exception.UserAlreadyExistsException
 import com.juanjoseabuin.chirp.domain.exception.UserNotFoundException
 import com.juanjoseabuin.chirp.domain.model.AuthenticatedUser
@@ -12,7 +13,9 @@ import com.juanjoseabuin.chirp.infra.database.mapper.toUser
 import com.juanjoseabuin.chirp.infra.database.repository.RefreshTokenRepository
 import com.juanjoseabuin.chirp.infra.database.repository.UserRepository
 import com.juanjoseabuin.chirp.infra.security.PasswordEncoder
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.Base64
@@ -64,6 +67,43 @@ class AuthService(
                 user = user.toUser(),
                 accessToken = accessToken,
                 refreshToken = refreshToken
+            )
+        } ?: throw UserNotFoundException()
+    }
+
+    @Transactional
+    fun refresh(refreshToken: String): AuthenticatedUser {
+        if(!jwtService.validateRefreshToken(refreshToken)) {
+            throw InvalidTokenException(
+                message = "Invalid refresh token"
+            )
+        }
+
+        val userId = jwtService.getUserIdFromToken(refreshToken)
+        val user = userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException()
+
+        val hashedRefreshToken = hashToken(refreshToken)
+
+        return user.id?.let { userId ->
+            refreshTokenRepository.findByUserIdAndHashedToken(
+                userId = userId,
+                hashedToken = hashedRefreshToken
+            ) ?: throw InvalidTokenException("Invalid refresh token")
+
+            refreshTokenRepository.deleteByUserIdAndHashedToken(
+                userId = userId,
+                hashedToken = hashedRefreshToken
+            )
+
+            val newAccessToken = jwtService.generateAccessToken(userId)
+            val newRefreshToken = jwtService.generateRefreshToken(userId)
+
+            storeRefreshToken(userId, newRefreshToken)
+
+            AuthenticatedUser(
+                user = user.toUser(),
+                accessToken = newAccessToken,
+                refreshToken = newRefreshToken
             )
         } ?: throw UserNotFoundException()
     }
