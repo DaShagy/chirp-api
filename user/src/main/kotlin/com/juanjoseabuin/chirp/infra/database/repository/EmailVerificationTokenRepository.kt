@@ -1,0 +1,12 @@
+package com.juanjoseabuin.chirp.infra.database.repository
+
+import com.juanjoseabuin.chirp.infra.database.entity.EmailVerificationTokenEntity
+import com.juanjoseabuin.chirp.infra.database.entity.UserEntity
+import org.springframework.data.jpa.repository.JpaRepository
+import java.time.Instant
+
+interface EmailVerificationTokenRepository: JpaRepository<EmailVerificationTokenEntity, Long> {
+    fun findByToken(token: String): EmailVerificationTokenEntity?
+    fun deleteByExpiresAtLessThan(now: Instant)
+    fun findByUserAndUsedAtIsNull(user: UserEntity): List<EmailVerificationTokenEntity>
+}
