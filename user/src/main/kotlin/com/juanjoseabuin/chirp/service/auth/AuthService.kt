@@ -1,5 +1,6 @@
 package com.juanjoseabuin.chirp.service.auth
 
+import com.juanjoseabuin.chirp.domain.exception.EmailNotVerifiedException
 import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
 import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
 import com.juanjoseabuin.chirp.domain.exception.UserAlreadyExistsException
@@ -25,25 +26,31 @@ class AuthService(
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val emailVerificationService: EmailVerificationService
 ) {
     fun register(email: String, username: String, password: String): User {
+        val trimmedEmail = email.trim()
+        val trimmedUsername = username.trim()
         val user = userRepository.findByEmailOrUsername(
-            email = email.trim(),
-            username = username.trim()
+            email = trimmedEmail,
+            username = trimmedUsername
         )
 
         if (user != null) {
             throw UserAlreadyExistsException()
         }
 
+
         val savedUser = userRepository.save(
             UserEntity(
-                email = email.trim(),
-                username = username.trim(),
+                email = trimmedEmail,
+                username = trimmedUsername,
                 hashedPasswords = passwordEncoder.encode(password)
             )
         ).toUser()
+
+        emailVerificationService.createVerificationToken(trimmedEmail)
 
         return savedUser
     }
@@ -55,7 +62,9 @@ class AuthService(
             throw InvalidCredentialsException()
         }
 
-        // TODO: Check for verified email
+        if(!user.hasVerifiedEmail) {
+            throw EmailNotVerifiedException()
+        }
 
         return user.id?.let { userId ->
             val accessToken = jwtService.generateAccessToken(userId)
@@ -106,6 +115,13 @@ class AuthService(
                 refreshToken = newRefreshToken
             )
         } ?: throw UserNotFoundException()
+    }
+
+    @Transactional
+    fun logout(refreshToken: String) {
+        val userId = jwtService.getUserIdFromToken(refreshToken)
+        val hashedToken = hashToken(refreshToken)
+        refreshTokenRepository.deleteByUserIdAndHashedToken(userId, hashedToken)
     }
 
     private fun storeRefreshToken(userId: UserId, token: String) {
