@@ -1,4 +1,4 @@
-package com.juanjoseabuin.chirp.service.auth
+package com.juanjoseabuin.chirp.service
 
 import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
 import com.juanjoseabuin.chirp.domain.model.UserId
