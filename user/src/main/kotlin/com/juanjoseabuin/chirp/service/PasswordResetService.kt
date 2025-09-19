@@ -1,3 +1,5 @@
+package com.juanjoseabuin.chirp.service
+
 import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
 import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
 import com.juanjoseabuin.chirp.domain.exception.SamePasswordException
