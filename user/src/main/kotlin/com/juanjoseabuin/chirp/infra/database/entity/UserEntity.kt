@@ -31,7 +31,7 @@ class UserEntity(
     @Column(nullable = false, unique = true)
     var username: String,
     @Column(nullable = false)
-    var hashedPasswords: String,
+    var hashedPassword: String,
     @Column(nullable = false)
     var hasVerifiedEmail: Boolean = false,
     @CreationTimestamp

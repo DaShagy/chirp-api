@@ -1,4 +1,4 @@
-package com.juanjoseabuin.chirp.service.auth
+package com.juanjoseabuin.chirp.service
 
 import com.juanjoseabuin.chirp.domain.exception.EmailNotVerifiedException
 import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
@@ -46,7 +46,7 @@ class AuthService(
             UserEntity(
                 email = trimmedEmail,
                 username = trimmedUsername,
-                hashedPasswords = passwordEncoder.encode(password)
+                hashedPassword = passwordEncoder.encode(password)
             )
         ).toUser()
 
@@ -58,7 +58,7 @@ class AuthService(
     fun login(email: String, password: String): AuthenticatedUser {
         val user = userRepository.findByEmail(email.trim()) ?: throw InvalidCredentialsException()
 
-        if(!passwordEncoder.matches(password, user.hashedPasswords)) {
+        if(!passwordEncoder.matches(password, user.hashedPassword)) {
             throw InvalidCredentialsException()
         }
 

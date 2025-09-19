@@ -6,8 +6,8 @@ import com.juanjoseabuin.chirp.api.dto.RefreshRequest
 import com.juanjoseabuin.chirp.api.dto.RegisterRequest
 import com.juanjoseabuin.chirp.api.dto.UserDto
 import com.juanjoseabuin.chirp.api.mapper.toDto
-import com.juanjoseabuin.chirp.service.auth.AuthService
-import com.juanjoseabuin.chirp.service.auth.EmailVerificationService
+import com.juanjoseabuin.chirp.service.AuthService
+import com.juanjoseabuin.chirp.service.EmailVerificationService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
