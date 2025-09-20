@@ -3,6 +3,7 @@ package com.juanjoseabuin.chirp.api.exception_handling
 import com.juanjoseabuin.chirp.domain.exception.EmailNotVerifiedException
 import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
 import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
+import com.juanjoseabuin.chirp.domain.exception.RateLimitException
 import com.juanjoseabuin.chirp.domain.exception.SamePasswordException
 import com.juanjoseabuin.chirp.domain.exception.UserAlreadyExistsException
 import com.juanjoseabuin.chirp.domain.exception.UserNotFoundException
@@ -67,6 +68,15 @@ class AuthExceptionHandler {
         e: SamePasswordException
     ) = mapOf(
         "code" to "SAME_PASSWORD",
+        "message" to e.message
+    )
+
+    @ExceptionHandler(RateLimitException::class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    fun onRateLimitExceeded(
+        e: RateLimitException
+    ) = mapOf(
+        "code" to "RATE_LIMIT_EXCEEDED",
         "message" to e.message
     )
 
