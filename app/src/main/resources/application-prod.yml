@@ -8,3 +8,8 @@ jwt:
 
 nginx:
   required-proxy: true
+
+chirp:
+  rate-limit:
+    ip:
+      apply-limit: true
