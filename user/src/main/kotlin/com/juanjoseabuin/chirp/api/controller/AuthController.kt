@@ -10,6 +10,7 @@ import com.juanjoseabuin.chirp.api.dto.RegisterRequest
 import com.juanjoseabuin.chirp.api.dto.ResetPasswordRequest
 import com.juanjoseabuin.chirp.api.dto.UserDto
 import com.juanjoseabuin.chirp.api.mapper.toDto
+import com.juanjoseabuin.chirp.api.util.requestUserId
 import com.juanjoseabuin.chirp.infra.rate_limiting.EmailRateLimiter
 import com.juanjoseabuin.chirp.service.AuthService
 import com.juanjoseabuin.chirp.service.EmailVerificationService
@@ -116,7 +117,11 @@ class AuthController(
     fun changePassword(
         @Valid @RequestBody body: ChangePasswordRequest
     ) {
-        //TODO: Extract request UserId and call service
+        passwordResetService.changePassword(
+            userId = requestUserId,
+            oldPassword = body.oldPassword,
+            newPassword = body.newPassword
+        )
     }
 
     @PostMapping("/forgot-password")
