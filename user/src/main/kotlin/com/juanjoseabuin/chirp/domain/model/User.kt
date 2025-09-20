@@ -1,8 +1,6 @@
 package com.juanjoseabuin.chirp.domain.model
 
-import java.util.UUID
-
-typealias UserId = UUID
+import com.juanjoseabuin.chirp.domain.type.UserId
 
 data class User(
     val id: UserId,

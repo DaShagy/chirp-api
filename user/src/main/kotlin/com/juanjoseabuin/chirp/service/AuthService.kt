@@ -7,7 +7,7 @@ import com.juanjoseabuin.chirp.domain.exception.UserAlreadyExistsException
 import com.juanjoseabuin.chirp.domain.exception.UserNotFoundException
 import com.juanjoseabuin.chirp.domain.model.AuthenticatedUser
 import com.juanjoseabuin.chirp.domain.model.User
-import com.juanjoseabuin.chirp.domain.model.UserId
+import com.juanjoseabuin.chirp.domain.type.UserId
 import com.juanjoseabuin.chirp.infra.database.entity.RefreshTokenEntity
 import com.juanjoseabuin.chirp.infra.database.entity.UserEntity
 import com.juanjoseabuin.chirp.infra.database.mapper.toUser
