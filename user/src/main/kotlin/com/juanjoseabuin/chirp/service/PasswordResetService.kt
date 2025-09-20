@@ -4,7 +4,7 @@ import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
 import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
 import com.juanjoseabuin.chirp.domain.exception.SamePasswordException
 import com.juanjoseabuin.chirp.domain.exception.UserNotFoundException
-import com.juanjoseabuin.chirp.domain.model.UserId
+import com.juanjoseabuin.chirp.domain.type.UserId
 import com.juanjoseabuin.chirp.infra.database.entity.PasswordResetTokenEntity
 import com.juanjoseabuin.chirp.infra.database.repository.PasswordResetTokenRepository
 import com.juanjoseabuin.chirp.infra.database.repository.RefreshTokenRepository

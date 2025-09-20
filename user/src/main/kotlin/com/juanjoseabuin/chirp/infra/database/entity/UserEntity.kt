@@ -1,6 +1,6 @@
 package com.juanjoseabuin.chirp.infra.database.entity
 
-import com.juanjoseabuin.chirp.domain.model.UserId
+import com.juanjoseabuin.chirp.domain.type.UserId
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
