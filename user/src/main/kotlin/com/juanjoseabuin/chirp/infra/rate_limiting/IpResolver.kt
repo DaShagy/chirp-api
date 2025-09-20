@@ -34,7 +34,7 @@ class IpResolver(
 
     private val logger = LoggerFactory.getLogger(IpResolver::class.java)
 
-    private val trustedMatcher: List<IpAddressMatcher> = nginxConfig
+    private val trustedMatchers: List<IpAddressMatcher> = nginxConfig
         .trustedIps
         .filter { it.isNotBlank() }
         .map { proxy ->
@@ -51,7 +51,7 @@ class IpResolver(
 
         if(!isFromTrustedProxy(remoteAddr)) {
             if(nginxConfig.requireProxy) {
-                logger.warn("Direct conection attemp from $remoteAddr")
+                logger.warn("Direct connection attempt from $remoteAddr")
                 throw SecurityException("No valid client IP in proxy headers")
             }
 
@@ -113,7 +113,7 @@ class IpResolver(
     }
 
     private fun isFromTrustedProxy(ip: String): Boolean {
-        return trustedMatcher.any { matcher ->
+        return trustedMatchers.any { matcher ->
             matcher.matches(ip)
         }
     }
