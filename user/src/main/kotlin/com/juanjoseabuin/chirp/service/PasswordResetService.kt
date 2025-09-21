@@ -1,5 +1,6 @@
 package com.juanjoseabuin.chirp.service
 
+import com.juanjoseabuin.chirp.domain.event.user.UserEvent
 import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
 import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
 import com.juanjoseabuin.chirp.domain.exception.SamePasswordException
@@ -9,6 +10,7 @@ import com.juanjoseabuin.chirp.infra.database.entity.PasswordResetTokenEntity
 import com.juanjoseabuin.chirp.infra.database.repository.PasswordResetTokenRepository
 import com.juanjoseabuin.chirp.infra.database.repository.RefreshTokenRepository
 import com.juanjoseabuin.chirp.infra.database.repository.UserRepository
+import com.juanjoseabuin.chirp.infra.message_queue.EventPublisher
 import com.juanjoseabuin.chirp.infra.security.PasswordEncoder
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
@@ -24,7 +26,8 @@ class PasswordResetService(
     private val passwordResetTokenRepository: PasswordResetTokenRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
-    @param:Value("\${chirp.email.reset-password.expiry-minutes}") private val expiryMinutes: Long
+    @param:Value("\${chirp.email.reset-password.expiry-minutes}") private val expiryMinutes: Long,
+    private val eventPublisher: EventPublisher
 ) {
     @Transactional
     fun requestPasswordReset(email: String) {
@@ -38,7 +41,15 @@ class PasswordResetService(
         )
         passwordResetTokenRepository.save(token)
 
-        //TODO: Inform notification service about password reset trigger to send email
+        eventPublisher.publish(
+            event = UserEvent.RequestResetPassword(
+                userId = token.user.id!!,
+                email = token.user.email,
+                username = token.user.username,
+                passwordResetToken = token.token,
+                expiresInMinutes = expiryMinutes
+            )
+        )
     }
 
     @Transactional
