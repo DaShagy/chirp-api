@@ -1,5 +1,6 @@
 package com.juanjoseabuin.chirp.service
 
+import com.juanjoseabuin.chirp.domain.event.user.UserEvent
 import com.juanjoseabuin.chirp.domain.exception.EmailNotVerifiedException
 import com.juanjoseabuin.chirp.domain.exception.InvalidCredentialsException
 import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
@@ -13,6 +14,7 @@ import com.juanjoseabuin.chirp.infra.database.entity.UserEntity
 import com.juanjoseabuin.chirp.infra.database.mapper.toUser
 import com.juanjoseabuin.chirp.infra.database.repository.RefreshTokenRepository
 import com.juanjoseabuin.chirp.infra.database.repository.UserRepository
+import com.juanjoseabuin.chirp.infra.message_queue.EventPublisher
 import com.juanjoseabuin.chirp.infra.security.PasswordEncoder
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -27,7 +29,8 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
-    private val emailVerificationService: EmailVerificationService
+    private val emailVerificationService: EmailVerificationService,
+    private val eventPublisher: EventPublisher
 ) {
     fun register(email: String, username: String, password: String): User {
         val trimmedEmail = email.trim()
@@ -50,7 +53,16 @@ class AuthService(
             )
         ).toUser()
 
-        emailVerificationService.createVerificationToken(trimmedEmail)
+        val token = emailVerificationService.createVerificationToken(trimmedEmail)
+
+        eventPublisher.publish(
+            event = UserEvent.Created(
+                userId = savedUser.id,
+                email = savedUser.email,
+                username = savedUser.username,
+                verificationToken = token.token
+            )
+        )
 
         return savedUser
     }
