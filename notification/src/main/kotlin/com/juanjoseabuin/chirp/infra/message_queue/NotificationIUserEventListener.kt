@@ -1,12 +1,16 @@
 package com.juanjoseabuin.chirp.infra.message_queue
 
 import com.juanjoseabuin.chirp.domain.event.user.UserEvent
+import com.juanjoseabuin.chirp.service.EmailService
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 
 @Component
-class NotificationIUserEventListener {
+class NotificationIUserEventListener(
+    private val emailService: EmailService
+) {
 
     @RabbitListener(
         queues = [MessageQueues.NOTIFICATION_USER_EVENTS]
@@ -15,13 +19,29 @@ class NotificationIUserEventListener {
     fun handleUserEvent(event: UserEvent) {
         when (event) {
             is UserEvent.Created -> {
-                println("UserCreated")
+                emailService.sendVerificationEmail(
+                    email = event.email,
+                    username = event.username,
+                    userId = event.userId,
+                    token = event.verificationToken
+                )
             }
             is UserEvent.RequestResendVerification -> {
-                println("RequestResendVerification")
+                emailService.sendVerificationEmail(
+                    email = event.email,
+                    username = event.username,
+                    userId = event.userId,
+                    token = event.verificationToken
+                )
             }
             is UserEvent.RequestResetPassword -> {
-                println("RequestResetPassword")
+                emailService.sendPasswordResetEmail(
+                    email = event.email,
+                    username = event.username,
+                    userId = event.userId,
+                    token = event.passwordResetToken,
+                    expiresIn = Duration.ofMinutes(event.expiresInMinutes)
+                )
             }
             else -> Unit
         }
