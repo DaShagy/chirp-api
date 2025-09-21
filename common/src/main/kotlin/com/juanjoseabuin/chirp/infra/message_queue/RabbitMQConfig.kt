@@ -3,25 +3,34 @@ package com.juanjoseabuin.chirp.infra.message_queue
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.juanjoseabuin.chirp.domain.event.ChirpEvent
+import com.juanjoseabuin.chirp.domain.event.user.UserEvent
 import com.juanjoseabuin.chirp.domain.event.user.UserEventsConstants
+import org.springframework.amqp.core.Binding
+import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.core.Queue
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.amqp.support.converter.Jackson2JavaTypeMapper
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.annotation.EnableTransactionManagement
 
 @Configuration
+@EnableTransactionManagement
 class RabbitMQConfig {
 
     @Bean
     fun messageConverter(): Jackson2JsonMessageConverter {
         val objectMapper = ObjectMapper().apply {
             registerModule(KotlinModule.Builder().build())
+            registerModule(JavaTimeModule())
             findAndRegisterModules()
 
             val polymorphicTypeValidator = BasicPolymorphicTypeValidator.builder()
@@ -38,6 +47,20 @@ class RabbitMQConfig {
 
         return Jackson2JsonMessageConverter(objectMapper).apply {
             typePrecedence = Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID
+        }
+    }
+
+    @Bean
+    fun rabbitListenerContainerFactory(
+        connectionFactory: ConnectionFactory,
+        transactionManager: PlatformTransactionManager,
+        messageConverter: Jackson2JsonMessageConverter
+    ): SimpleRabbitListenerContainerFactory {
+        return SimpleRabbitListenerContainerFactory().apply {
+            this.setConnectionFactory(connectionFactory)
+            this.setTransactionManager(transactionManager)
+            this.setChannelTransacted(true)
+            this.setMessageConverter(messageConverter)
         }
     }
 
@@ -63,4 +86,15 @@ class RabbitMQConfig {
         MessageQueues.NOTIFICATION_USER_EVENTS,
         true
     )
+
+    @Bean
+    fun notificationUserEventsBinding(
+        notificationUserEventsQueue: Queue,
+        userExchange: TopicExchange
+    ): Binding {
+        return BindingBuilder
+            .bind(notificationUserEventsQueue)
+            .to(userExchange)
+            .with("user.*")
+    }
  }

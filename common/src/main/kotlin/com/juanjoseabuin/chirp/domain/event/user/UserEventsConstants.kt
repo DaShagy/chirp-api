@@ -1,6 +1,6 @@
 package com.juanjoseabuin.chirp.domain.event.user
 
-object UserEventsConstants {
+internal object UserEventsConstants {
 
     const val USER_EXCHANGE = "user.exchange"
 
