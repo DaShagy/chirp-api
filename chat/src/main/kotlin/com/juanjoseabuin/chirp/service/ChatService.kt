@@ -19,6 +19,7 @@ import com.juanjoseabuin.chirp.infra.database.repository.ChatMessageRepository
 import com.juanjoseabuin.chirp.infra.database.repository.ChatParticipantRepository
 import com.juanjoseabuin.chirp.infra.database.repository.ChatRepository
 import jakarta.transaction.Transactional
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -128,6 +129,12 @@ class ChatService(
         )
     }
 
+    @Cacheable(
+        value = ["messages"],
+        key = "#chatId",
+        condition = "#before == null && #pageSize <= 50",
+        sync = true
+    )
     fun getChatMessages(
         chatId: ChatId,
         before: Instant?,
@@ -142,6 +149,31 @@ class ChatService(
             .content
             .asReversed()
             .map { it.toChatMessage().toDto() }
+    }
+
+    fun getChatById(
+        chatId: ChatId,
+        requestUserId: UserId
+    ): Chat? {
+        return chatRepository
+            .findChatById(chatId, requestUserId)
+            ?.toChat(lastMessageForChat(chatId))
+    }
+
+    fun findChatsByUser(userId: UserId): List<Chat> {
+        val chatEntities = chatRepository.findAllByUserId(userId)
+        val chatIds = chatEntities.mapNotNull { it.id }
+        val latestMessages = chatMessageRepository
+            .findLatestMessagesByChatIds(chatIds.toSet())
+            .associateBy { it.chatId }
+
+        return chatEntities
+            .map {
+                it.toChat(
+                    lastMessage = latestMessages[it.id]?.toChatMessage()
+                )
+            }
+            .sortedByDescending { it.lastActivityAt }
     }
 
     private fun lastMessageForChat(chatId: ChatId): ChatMessage? {

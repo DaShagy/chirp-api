@@ -10,6 +10,7 @@ import com.juanjoseabuin.chirp.domain.type.ChatId
 import com.juanjoseabuin.chirp.service.ChatMessageService
 import com.juanjoseabuin.chirp.service.ChatService
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 
 @RestController
@@ -28,6 +30,16 @@ class ChatController(
 
     companion object {
         private const val DEFAULT_PAGE_SIZE = 20
+    }
+
+    @GetMapping("/{chatId}")
+    fun getChat(
+        @PathVariable("chatId") chatId: ChatId
+    ): ChatDto {
+        return chatService.getChatById(
+            chatId = chatId,
+            requestUserId = requestUserId
+        )?.toDto() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
     @GetMapping("/{chatId}/messages")
@@ -41,6 +53,13 @@ class ChatController(
             before = before,
             pageSize = pageSize
         )
+    }
+
+    @GetMapping
+    fun getChatsForUser(): List<ChatDto> {
+        return chatService.findChatsByUser(
+            userId = requestUserId
+        ).map { it.toDto() }
     }
 
     @PostMapping
