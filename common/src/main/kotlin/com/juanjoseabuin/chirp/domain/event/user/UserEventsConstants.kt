@@ -2,7 +2,7 @@ package com.juanjoseabuin.chirp.domain.event.user
 
 internal object UserEventsConstants {
 
-    const val USER_EXCHANGE = "user.exchange"
+    const val USER_EXCHANGE = "user.events"
 
     const val USER_CREATED_KEY = "user.created"
     const val USER_VERIFIED_KEY = "user.verified"
