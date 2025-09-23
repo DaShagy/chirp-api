@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 
 @Component
-class NotificationIUserEventListener(
+class NotificationUserEventListener(
     private val emailService: EmailService
 ) {
 

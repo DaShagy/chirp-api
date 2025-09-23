@@ -4,6 +4,7 @@ import com.juanjoseabuin.chirp.domain.model.Chat
 import com.juanjoseabuin.chirp.domain.model.ChatMessage
 import com.juanjoseabuin.chirp.domain.model.ChatParticipant
 import com.juanjoseabuin.chirp.infra.database.entity.ChatEntity
+import com.juanjoseabuin.chirp.infra.database.entity.ChatMessageEntity
 import com.juanjoseabuin.chirp.infra.database.entity.ChatParticipantEntity
 
 fun ChatEntity.toChat(lastMessage: ChatMessage? = null): Chat {
@@ -25,6 +26,16 @@ fun ChatParticipantEntity.toChatParticipant(): ChatParticipant {
         username = username,
         email = email,
         profilePictureUrl = profilePictureUrl
+    )
+}
+
+fun ChatMessageEntity.toChatMessage(): ChatMessage {
+    return ChatMessage(
+        id = id!!,
+        chatId = chatId,
+        sender = sender.toChatParticipant(),
+        content = content,
+        createdAt = createdAt
     )
 }
 
