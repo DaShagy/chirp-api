@@ -2,6 +2,8 @@ package com.juanjoseabuin.chirp.service
 
 import com.juanjoseabuin.chirp.api.dto.ChatMessageDto
 import com.juanjoseabuin.chirp.api.mapper.toDto
+import com.juanjoseabuin.chirp.domain.event.MessageDeletedEvent
+import com.juanjoseabuin.chirp.domain.event.chat.ChatEvent
 import com.juanjoseabuin.chirp.domain.exception.ChatMessageNotFoundException
 import com.juanjoseabuin.chirp.domain.exception.ChatNotFoundException
 import com.juanjoseabuin.chirp.domain.exception.ChatParticipantNotFoundException
@@ -15,34 +17,20 @@ import com.juanjoseabuin.chirp.infra.database.mapper.toChatMessage
 import com.juanjoseabuin.chirp.infra.database.repository.ChatMessageRepository
 import com.juanjoseabuin.chirp.infra.database.repository.ChatParticipantRepository
 import com.juanjoseabuin.chirp.infra.database.repository.ChatRepository
+import com.juanjoseabuin.chirp.infra.message_queue.EventPublisher
 import jakarta.transaction.Transactional
-import org.springframework.data.domain.PageRequest
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 @Service
 class ChatMessageService(
     private val chatRepository: ChatRepository,
     private val chatMessageRepository: ChatMessageRepository,
-    private val chatParticipantRepository: ChatParticipantRepository
+    private val chatParticipantRepository: ChatParticipantRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val eventPublisher: EventPublisher,
 ) {
-
-    fun getChatMessages(
-        chatId: ChatId,
-        before: Instant?,
-        pageSize: Int
-    ): List<ChatMessageDto> {
-        return chatMessageRepository
-            .findByChatIdBefore(
-                chatId = chatId,
-                before = before ?: Instant.now(),
-                pageable = PageRequest.of(0, pageSize)
-            )
-            .content
-            .asReversed()
-            .map { it.toChatMessage().toDto() }
-    }
 
     @Transactional
     fun sendMessage(
@@ -57,13 +45,23 @@ class ChatMessageService(
         val sender = chatParticipantRepository.findByIdOrNull(senderId)
             ?: throw ChatParticipantNotFoundException(senderId)
 
-        val savedMessage = chatMessageRepository.save(
+        val savedMessage = chatMessageRepository.saveAndFlush(
             ChatMessageEntity(
                 id = messageId,
                 content = content,
                 chatId = chatId,
                 chat = chat,
                 sender = sender
+            )
+        )
+
+        eventPublisher.publish(
+            event = ChatEvent.NewMessage(
+                senderId = sender.userId,
+                senderUsername = sender.username,
+                recipientIds = chat.participants.map { it.userId }.toSet(),
+                chatId = chatId,
+                message = savedMessage.content
             )
         )
 
@@ -83,5 +81,12 @@ class ChatMessageService(
         }
 
         chatMessageRepository.delete(message)
+
+        applicationEventPublisher.publishEvent(
+            MessageDeletedEvent(
+                messageId = messageId,
+                chatId = message.chatId
+            )
+        )
     }
 }

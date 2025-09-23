@@ -1,6 +1,9 @@
 package com.juanjoseabuin.chirp.service
 
+import com.juanjoseabuin.chirp.api.dto.ChatMessageDto
 import com.juanjoseabuin.chirp.api.mapper.toDto
+import com.juanjoseabuin.chirp.domain.event.ChatParticipantLeftEvent
+import com.juanjoseabuin.chirp.domain.event.ChatParticipantsJoinedEvent
 import com.juanjoseabuin.chirp.domain.exception.ChatNotFoundException
 import com.juanjoseabuin.chirp.domain.exception.ChatParticipantNotFoundException
 import com.juanjoseabuin.chirp.domain.exception.ForbiddenException
@@ -16,14 +19,18 @@ import com.juanjoseabuin.chirp.infra.database.repository.ChatMessageRepository
 import com.juanjoseabuin.chirp.infra.database.repository.ChatParticipantRepository
 import com.juanjoseabuin.chirp.infra.database.repository.ChatRepository
 import jakarta.transaction.Transactional
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class ChatService(
     private val chatRepository: ChatRepository,
     private val chatParticipantRepository: ChatParticipantRepository,
-    private val chatMessageRepository: ChatMessageRepository
+    private val chatMessageRepository: ChatMessageRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
     @Transactional
@@ -81,6 +88,13 @@ class ChatService(
             }
         ).toChat(lastMessage)
 
+        applicationEventPublisher.publishEvent(
+            ChatParticipantsJoinedEvent(
+                chatId = chatId,
+                userIds = userIds
+            )
+        )
+
         return updatedChat
     }
 
@@ -105,6 +119,29 @@ class ChatService(
                 this.participants = chat.participants - participant
             }
         )
+
+        applicationEventPublisher.publishEvent(
+            ChatParticipantLeftEvent(
+                chatId = chatId,
+                userId = userId
+            )
+        )
+    }
+
+    fun getChatMessages(
+        chatId: ChatId,
+        before: Instant?,
+        pageSize: Int
+    ): List<ChatMessageDto> {
+        return chatMessageRepository
+            .findByChatIdBefore(
+                chatId = chatId,
+                before = before ?: Instant.now(),
+                pageable = PageRequest.of(0, pageSize)
+            )
+            .content
+            .asReversed()
+            .map { it.toChatMessage().toDto() }
     }
 
     private fun lastMessageForChat(chatId: ChatId): ChatMessage? {
