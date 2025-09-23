@@ -5,7 +5,7 @@ import com.juanjoseabuin.chirp.domain.exception.InvalidTokenException
 import com.juanjoseabuin.chirp.domain.exception.UserNotFoundException
 import com.juanjoseabuin.chirp.domain.model.EmailVerificationToken
 import com.juanjoseabuin.chirp.infra.database.entity.EmailVerificationTokenEntity
-import com.juanjoseabuin.chirp.infra.database.mapper.toEmailVerificationTokenEntity
+import com.juanjoseabuin.chirp.infra.database.mapper.toEmailVerificationToken
 import com.juanjoseabuin.chirp.infra.database.repository.EmailVerificationTokenRepository
 import com.juanjoseabuin.chirp.infra.database.repository.UserRepository
 import com.juanjoseabuin.chirp.infra.message_queue.EventPublisher
@@ -34,7 +34,7 @@ class EmailVerificationService(
             user = userEntity
         )
 
-        return emailVerificationTokenRepository.save(token).toEmailVerificationTokenEntity()
+        return emailVerificationTokenRepository.save(token).toEmailVerificationToken()
     }
 
     @Transactional

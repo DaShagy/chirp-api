@@ -9,5 +9,5 @@ data class Chat(
     val lastMessage: ChatMessage?,
     val creator: ChatParticipant,
     val lastActivityAt: Instant,
-    val createAt: Instant
+    val createdAt: Instant
 )
