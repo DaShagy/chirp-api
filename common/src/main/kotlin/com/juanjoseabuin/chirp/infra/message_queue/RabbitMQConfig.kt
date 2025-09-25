@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.juanjoseabuin.chirp.domain.event.ChirpEvent
+import com.juanjoseabuin.chirp.domain.event.chat.ChatEventConstants
 import com.juanjoseabuin.chirp.domain.event.user.UserEventsConstants
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
@@ -81,8 +82,21 @@ class RabbitMQConfig {
     )
 
     @Bean
+    fun chatExchange() = TopicExchange(
+        ChatEventConstants.CHAT_EXCHANGE,
+        true,
+        false
+    )
+
+    @Bean
     fun notificationUserEventsQueue() = Queue(
         MessageQueues.NOTIFICATION_USER_EVENTS,
+        true
+    )
+
+    @Bean
+    fun notificationChatEventsQueue() = Queue(
+        MessageQueues.NOTIFICATION_CHAT_EVENTS,
         true
     )
 
@@ -91,6 +105,7 @@ class RabbitMQConfig {
         MessageQueues.CHAT_USER_EVENTS,
         true
     )
+
 
     @Bean
     fun notificationUserEventsBinding(
@@ -101,6 +116,17 @@ class RabbitMQConfig {
             .bind(notificationUserEventsQueue)
             .to(userExchange)
             .with("user.*")
+    }
+
+    @Bean
+    fun notificationChatEventsBinding(
+        notificationChatEventsQueue: Queue,
+        chatExchange: TopicExchange
+    ): Binding {
+        return BindingBuilder
+            .bind(notificationChatEventsQueue)
+            .to(chatExchange)
+            .with(ChatEventConstants.CHAT_NEW_MESSAGE)
     }
 
     @Bean
