@@ -15,6 +15,7 @@ import com.juanjoseabuin.chirp.api.dto.ws.OutgoingWebSocketMessageType
 import com.juanjoseabuin.chirp.api.dto.ws.ProfilePictureUpdateDto
 import com.juanjoseabuin.chirp.api.dto.ws.SendMessageDto
 import com.juanjoseabuin.chirp.api.mapper.toDto
+import com.juanjoseabuin.chirp.domain.event.ChatCreatedEvent
 import com.juanjoseabuin.chirp.domain.event.ChatParticipantLeftEvent
 import com.juanjoseabuin.chirp.domain.event.ChatParticipantsJoinedEvent
 import com.juanjoseabuin.chirp.domain.event.MessageDeletedEvent
@@ -206,21 +207,10 @@ class ChatWebSocketHandler(
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun onJoinChat(event: ChatParticipantsJoinedEvent) {
-        connectionLock.write {
-            event.userIds.forEach { userId ->
-                userChatIds.compute(userId) { _, chatIds ->
-                    (chatIds ?: mutableSetOf()).apply {
-                        add(event.chatId)
-                    }
-                }
-
-                userToSessions[userId]?.forEach { sessionId ->
-                    chatToSessions.compute(event.chatId) { _, sessions ->
-                        (sessions ?: mutableSetOf()).apply { add(sessionId) }
-                    }
-                }
-            }
-        }
+        updateChatForUsers(
+            chatId = event.chatId,
+            userIds = event.userIds.toList()
+        )
 
         broadcastToChat(
             chatId = event.chatId,
@@ -259,6 +249,14 @@ class ChatWebSocketHandler(
                     ChatParticipantsChangedDto(chatId = event.chatId)
                 )
             )
+        )
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun onChatCreated(event: ChatCreatedEvent) {
+        updateChatForUsers(
+            chatId = event.chatId,
+            userIds = event.participantIds
         )
     }
 
@@ -437,6 +435,28 @@ class ChatWebSocketHandler(
                     logger.debug("Sent message to user {}: {}", userId, messageJson)
                 } catch (e: Exception) {
                     logger.error("Error while sending message to $userId", e)
+                }
+            }
+        }
+    }
+
+
+    private fun updateChatForUsers(
+        chatId: ChatId,
+        userIds: List<UserId>
+    ) {
+        connectionLock.write {
+            userIds.forEach { userId ->
+                userChatIds.compute(userId) { _, chatIds ->
+                    (chatIds ?: mutableSetOf()).apply {
+                        add(chatId)
+                    }
+                }
+
+                userToSessions[userId]?.forEach { sessionId ->
+                    chatToSessions.compute(chatId) { _, sessions ->
+                        (sessions ?: mutableSetOf()).apply { add(sessionId) }
+                    }
                 }
             }
         }
