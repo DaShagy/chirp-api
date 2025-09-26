@@ -5,6 +5,8 @@ spring:
   mail:
     host: smtp.mailgun.org
     username: jjasystems@sandbox1c110898d725454485ab5df26f24f4cb.mailgun.org
+  datasource:
+    url: jdbc:postgresql://aws-1-sa-east-1.pooler.supabase.com:5432/postgres
 
 jwt:
   expiration-minutes: 1000
