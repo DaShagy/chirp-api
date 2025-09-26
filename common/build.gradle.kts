@@ -3,7 +3,7 @@ plugins {
     id("chirp.kotlin-common")
 }
 
-group = "com.juanjoseabuin"
+group = "com.jja_systems"
 version = "0.0.1-SNAPSHOT"
 
 repositories {
