@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.spring.dependency.management) apply false
 }
 
-group = "com.juanjoseabuin"
+group = "com.jja_systems"
 version = "0.0.1-SNAPSHOT"
 
 subprojects {
