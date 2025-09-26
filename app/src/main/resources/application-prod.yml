@@ -6,7 +6,9 @@ spring:
     host: smtp.mailgun.org
     username: jjasystems@sandbox1c110898d725454485ab5df26f24f4cb.mailgun.org
   datasource:
-    url: jdbc:postgresql:db.cnewocdpgxqrtfxvytyu.supabase.co:5432
+    url: jdbc:postgresql://db.cnewocdpgxqrtfxvytyu.supabase.co:5432/postgres
+    username: postgres
+    password: ${POSTGRES_PASSWORD}
 
 jwt:
   expiration-minutes: 15
