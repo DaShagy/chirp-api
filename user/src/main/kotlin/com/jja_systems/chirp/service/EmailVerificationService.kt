@@ -88,6 +88,7 @@ class EmailVerificationService(
     }
 
     @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
     fun cleanupExpiredTokens() {
         emailVerificationTokenRepository.deleteByExpiresAtLessThan(
             now = Instant.now()
