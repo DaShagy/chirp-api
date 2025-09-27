@@ -18,9 +18,9 @@ nginx:
 
 chirp:
   email:
-    url: "http://localhost:8080"
+    url: "https://chirp.jja-systems.site"
   rate-limit:
     ip:
       apply-limit: true
   web-socket:
-    allowed-origins: "http://localhost:8080"
+    allowed-origins: "https://chirp.jja-systems.site"
