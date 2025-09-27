@@ -114,6 +114,7 @@ class PasswordResetService(
     }
 
     @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
     fun cleanupExpiredTokens() {
         passwordResetTokenRepository.deleteByExpiresAtLessThan(
             now = Instant.now()
