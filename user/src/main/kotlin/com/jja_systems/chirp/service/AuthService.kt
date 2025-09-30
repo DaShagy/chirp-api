@@ -35,12 +35,12 @@ class AuthService(
     fun register(email: String, username: String, password: String): User {
         val trimmedEmail = email.trim()
         val trimmedUsername = username.trim()
-        val user = userRepository.findByEmailOrUsername(
+        val users = userRepository.findByEmailOrUsername(
             email = trimmedEmail,
             username = trimmedUsername
         )
 
-        if (user != null) {
+        if (users.isNotEmpty()) {
             throw UserAlreadyExistsException()
         }
 
