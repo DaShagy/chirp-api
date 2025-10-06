@@ -2,6 +2,7 @@ package com.jja_systems.chirp.api.websocket
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -58,6 +59,9 @@ class ChatWebSocketHandler(
         registerModule(KotlinModule.Builder().build())
         registerModule(JavaTimeModule())
         findAndRegisterModules()
+
+        enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
 
         val polymorphicTypeValidator = BasicPolymorphicTypeValidator.builder()
             .allowIfSubType("java.util") //Allow Java lists
