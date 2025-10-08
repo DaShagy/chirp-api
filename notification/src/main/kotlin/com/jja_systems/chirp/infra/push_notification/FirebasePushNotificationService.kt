@@ -60,7 +60,7 @@ class FirebasePushNotificationService(
         }
     }
 
-    fun sendNotification(pushNotification: PushNotification): PushNotificationSendResult {
+    fun sendNotification(pushNotification: PushNotification): PushNotificationSendResult? {
         val messages = pushNotification.recipients.map { recipient ->
             Message.builder()
                 .setToken(recipient.token)
@@ -80,7 +80,7 @@ class FirebasePushNotificationService(
                             AndroidConfig.builder()
                                 .setPriority(AndroidConfig.Priority.HIGH)
                                 .setCollapseKey(pushNotification.chatId.toString())
-                                .setRestrictedPackageName("com.jja_systems.chirp")
+                                .setRestrictedPackageName("com.jjasystems.chirp")
                                 .build()
                         )
                         DeviceToken.Platform.IOS -> setApnsConfig(
@@ -98,7 +98,8 @@ class FirebasePushNotificationService(
                 .build()
         }
 
-        return FirebaseMessaging.getInstance().sendEach(messages).toSendResult(pushNotification.recipients)
+        return if(messages.isNotEmpty()) FirebaseMessaging.getInstance().sendEach(messages).toSendResult(pushNotification.recipients)
+        else null
     }
 
     private fun BatchResponse.toSendResult(

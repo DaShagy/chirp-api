@@ -114,20 +114,21 @@ class PushNotificationService(
         notification: PushNotification,
         attempt: Int = 0
     ) {
-        val result = firebasePushNotificationService.sendNotification(notification)
+        firebasePushNotificationService.sendNotification(notification)?.let { result ->
 
-        result.permanentFailures.forEach {
-            deviceTokenRepository.deleteByToken(it.token)
-        }
+            result.permanentFailures.forEach {
+                deviceTokenRepository.deleteByToken(it.token)
+            }
 
 
-        if (result.temporaryFailures.isEmpty() && attempt < RETRY_DELAYS_SECONDS.size) {
-            val retryNotification = notification.copy(recipients = result.temporaryFailures)
-            scheduleRetry(retryNotification, attempt + 1)
-        }
+            if (result.temporaryFailures.isEmpty() && attempt < RETRY_DELAYS_SECONDS.size) {
+                val retryNotification = notification.copy(recipients = result.temporaryFailures)
+                scheduleRetry(retryNotification, attempt + 1)
+            }
 
-        if (result.succeeded.isNotEmpty()) {
-            logger.info("Successfully sent notification to ${result.succeeded.size} devices")
+            if (result.succeeded.isNotEmpty()) {
+                logger.info("Successfully sent notification to ${result.succeeded.size} devices")
+            }
         }
     }
 
