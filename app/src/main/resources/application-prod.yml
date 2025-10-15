@@ -4,7 +4,7 @@ spring:
       ddl-auto: validate
   mail:
     host: smtp.mailgun.org
-    username: jjasystems@sandbox1c110898d725454485ab5df26f24f4cb.mailgun.org
+    username: info@chirp.jja-systems.site
   datasource:
     url: jdbc:postgresql://db.cnewocdpgxqrtfxvytyu.supabase.co:5432/postgres
     username: postgres
