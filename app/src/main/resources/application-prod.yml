@@ -24,3 +24,5 @@ chirp:
       apply-limit: true
   web-socket:
     allowed-origins: "https://chirp.jja-systems.site"
+  amqp:
+    queue-prefix: prod

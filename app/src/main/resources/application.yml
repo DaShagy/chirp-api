@@ -68,7 +68,7 @@ jwt:
 
 chirp:
   email:
-    from: mail@jja-systems.com
+    from: "\"Chirp\" <info@chirp.jja-systems.site>"
     verification:
       expiry-hours: 24
 

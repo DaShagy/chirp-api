@@ -17,6 +17,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.amqp.support.converter.Jackson2JavaTypeMapper
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
@@ -24,7 +25,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 
 @Configuration
 @EnableTransactionManagement
-class RabbitMQConfig {
+class RabbitMQConfig(
+    @Value("\${chirp.amqp.queue-prefix}")
+    private val queuePrefix: String
+) {
 
     @Bean
     fun messageConverter(): Jackson2JsonMessageConverter {
@@ -76,33 +80,33 @@ class RabbitMQConfig {
 
     @Bean
     fun userExchange() = TopicExchange(
-        UserEventsConstants.USER_EXCHANGE,
+        "$queuePrefix.${UserEventsConstants.USER_EXCHANGE}",
         true,
         false
     )
 
     @Bean
     fun chatExchange() = TopicExchange(
-        ChatEventConstants.CHAT_EXCHANGE,
+        "$queuePrefix.${ChatEventConstants.CHAT_EXCHANGE}",
         true,
         false
     )
 
     @Bean
     fun notificationUserEventsQueue() = Queue(
-        MessageQueues.NOTIFICATION_USER_EVENTS,
+        "$queuePrefix.${MessageQueues.NOTIFICATION_USER_EVENTS}",
         true
     )
 
     @Bean
     fun notificationChatEventsQueue() = Queue(
-        MessageQueues.NOTIFICATION_CHAT_EVENTS,
+        "$queuePrefix.${MessageQueues.NOTIFICATION_CHAT_EVENTS}",
         true
     )
 
     @Bean
     fun chatUserEventsQueue() = Queue(
-        MessageQueues.CHAT_USER_EVENTS,
+        "$queuePrefix.${MessageQueues.CHAT_USER_EVENTS}",
         true
     )
 

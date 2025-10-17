@@ -96,7 +96,7 @@ class PushNotificationService(
             .map { it.toDeviceToken() }
 
         val notification = PushNotification(
-            title = "New message fromm $senderUsername",
+            title = "New message from $senderUsername",
             recipients = recipients,
             message = message,
             chatId = chatId,
